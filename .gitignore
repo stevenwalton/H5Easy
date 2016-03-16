@@ -1,3 +1,10 @@
+# H5 Files
+*.h5
+
+# Vim Files
+*.swo
+*.swp
+
 # Compiled Object files
 *.slo
 *.lo
