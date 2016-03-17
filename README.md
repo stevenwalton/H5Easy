@@ -43,6 +43,7 @@ Note that this method also works for loading in group data. All you have to do i
 ### Assumptions
 ---------------
 - You are using vectors (if you aren't, you should for reasons other than using these files)
+- You are using 1D vectors (reading and writing)
 - You want a I32LE (long int 32) storage for your integers (reading and writing)
 - You want a IEEE 32 Float. (reading and writing)
 
