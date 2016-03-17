@@ -24,7 +24,8 @@ data.setVarName("myVariableName");
 vector<int/float> loadedData = data.getData();
 ```
 
-I have included a test file so that you can ensure that things are working properly
+I have included a test file so that you can ensure that things are working properly.
+Note that this method also works for loading in group data. All you have to do is type the full path as the variable name.
 
 ### Assumptions
 ---------------
@@ -39,5 +40,5 @@ Please open an issue on the GitHub page for bugs in the code or feature requests
 ### TODO
 --------
 Features I plan on adding
-- Groups
+- Creating and writing to groups
 - Determining different int or float types when reading (aka someone who isn't using this and is using weird data)
