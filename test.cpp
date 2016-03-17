@@ -22,6 +22,9 @@ int main()
    dta.writeData(iv);
    dta.setVarName("FloatVecData");
    dta.writeData(f);
+   dta.createGroup("/my/group/");
+   dta.setVarName("/my/group/FloatVecData");
+   dta.writeData(f);
 
    // To Load Data
    LoadH5 ldata;
@@ -30,6 +33,8 @@ int main()
    vector<int> idta = ldata.getData();
    ldata.setVarName("FloatVecData");
    vector<float>fdta = ldata.getData();
+   ldata.setVarName("/my/group/FloatVecData");
+   vector<float>gfdta = ldata.getData();
   
    return 0;
 }

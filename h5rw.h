@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include "H5Cpp.h"
 
@@ -26,6 +27,8 @@ class WriteH5
       // Functions to be overloaded
       void writeData(std::vector<int>);
       void writeData(std::vector<float>);
+
+      void createGroup(std::string);
 };
 
 class LoadH5
@@ -123,7 +126,6 @@ void WriteH5::writeData(std::vector<int> data)
          H5File file(FILE_NAME, H5F_ACC_TRUNC);
          file.close();
          // Just some warning that we have gone through this catch
-         std::cout << "i-itr: " << itr << std::endl;
          itr++;
          // This is to prevent us from getting caught in an infinite loop. While (true) loops
          // are useful, but they can be dangerous. Always ensure some escape sequence. Could
@@ -179,13 +181,51 @@ void WriteH5::writeData(std::vector<float> data)
          H5File file(FILE_NAME,H5F_ACC_TRUNC);
          file.close();
          itr++;
-         std::cout << "f-itr: " << itr << std::endl;
          if (itr > 3)
          {
             std::cout << "We've tried too many times in the float writing sequence" << std::endl;
             break;
          }
       }
+      catch (GroupIException error)
+      {
+         std::cout << "Group DNE" << std:: endl;
+         break;
+      }
+   }
+}
+
+void WriteH5::createGroup(std::string groupName)
+{
+   try
+   {
+      H5std_string FILE_NAME(WriteH5::filename);
+      std::istringstream ss(groupName);
+      std::string token;
+      std::vector<std::string> groupSections;
+      while ( std::getline(ss, token, '/') )
+         groupSections.push_back(token);
+      std::string mygroup;
+      for ( size_t i = 0; i < groupSections.size(); i++ )
+      {
+         mygroup.append("/");
+         mygroup.append(groupSections[i]);
+         if ( mygroup != "/" )
+         {
+            H5File file(FILE_NAME, H5F_ACC_RDWR);
+            Group group(file.createGroup(mygroup));
+            group.close();
+            file.close();
+         }
+      }
+   }
+   catch (FileIException error)
+   {
+      error.printError();
+   }
+   catch (GroupIException error)
+   {
+      error.printError();
    }
 }
 

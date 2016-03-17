@@ -20,6 +20,9 @@ WriteH5 data;
 data.setFileName("myH5File.h5");
 data.setVarName("myVariableName");
 data.writeData(myVectoredData);
+// For groups
+data.createGroup("/my/group/name");
+data.setVarName("/my/group/name/myVariableName");
 ```
 The libraries do not care if you pass it a float or an int vector, just that you pass it a vector. It will write in the proper method.
 
@@ -28,6 +31,9 @@ If a user wants to read the data from the h5 file
 LoadH5 data;
 data.setFileName("myH5File.h5");
 data.setVarName("myVariableName");
+vector<int/float> loadedData = data.getData();
+// For groups
+data.setVarName("/my/group/name/myVariableName");
 vector<int/float> loadedData = data.getData();
 ```
 
@@ -51,6 +57,5 @@ Please open an issue on the GitHub page for bugs in the code or feature requests
 ### TODO
 --------
 Features I plan on adding
-- Creating and writing to groups
 - Determining different int or float types when reading (aka someone who isn't using I32LE or IEEE F32BE)
 - Multidimensional arrays
