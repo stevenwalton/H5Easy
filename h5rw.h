@@ -95,8 +95,8 @@ void WriteH5::writeData(std::vector<int> data)
    hsize_t dims[1];
    dims[0] = npts;
    // Let's make sure we are doing what we want and output it to the std output
-   std::cout << "We have WriteH5::filename: " << WriteH5::filename << std::endl;
-   std::cout << "data: " << WriteH5::variable << std::endl;
+   //std::cout << "We have WriteH5::filename: " << WriteH5::filename << std::endl;
+   //std::cout << "data: " << WriteH5::variable << std::endl;
 
    // We need to set these parameters for the H5 data file writing
    const H5std_string FILE_NAME(WriteH5::filename);
@@ -153,8 +153,8 @@ void WriteH5::writeData(std::vector<float> data)
       a[i] = data[i];
    hsize_t dims[1];
    dims[0] = npts;
-   std::cout << "We have WriteH5::filename: " << WriteH5::filename << std::endl;
-   std::cout << "data: " << WriteH5::variable << std::endl;
+   //std::cout << "We have WriteH5::filename: " << WriteH5::filename << std::endl;
+   //std::cout << "data: " << WriteH5::variable << std::endl;
 
    const H5std_string FILE_NAME(WriteH5::filename);
    H5std_string DATASET_NAME(WriteH5::variable);
@@ -168,7 +168,7 @@ void WriteH5::writeData(std::vector<float> data)
          DataSpace dsp = DataSpace(vrank,dims);
          DataSet dset = file.createDataSet(DATASET_NAME, PredType::IEEE_F32BE, dsp);
          dset.write(a, PredType::IEEE_F32BE);
-         std::cout << "Data written" << std::endl;
+         //std::cout << "Data written" << std::endl;
 
          dset.close();
          dsp.close();
@@ -241,7 +241,7 @@ std::vector<int> LoadH5::getDataint() const
    try
    {
       Exception::dontPrint();
-      std::cout << "Getting int data" << std::endl;
+      //std::cout << "Getting int data" << std::endl;
       H5std_string FILE_NAME(LoadH5::filename);
       H5File file(FILE_NAME, H5F_ACC_RDONLY); // Only reads
       DataSet dataset = file.openDataSet(LoadH5::variable);
@@ -285,7 +285,7 @@ std::vector<float> LoadH5::getDatafloat() const
    try
    {
       Exception::dontPrint();
-      std::cout << "Getting float data" << std::endl;
+      //std::cout << "Getting float data" << std::endl;
       H5std_string FILE_NAME(LoadH5::filename);
       H5File file(FILE_NAME, H5F_ACC_RDONLY);
       DataSet dataset = file.openDataSet(LoadH5::variable);
