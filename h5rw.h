@@ -2,6 +2,7 @@
  * Class functions for an easier h5 read and write method.
  * Created by: Steven Walton
  * Email: walton.stevenj@gmail.com
+ * Version: 0.10
  */
 #ifndef H5RW_H
 #define H5RW_H
@@ -252,7 +253,7 @@ std::vector<int> LoadH5::getDataint() const
       // Let's make a quick error check
       if ( classt != 0 )
       {
-         std::cout << "This is not an int... you can't save this as an int." << std::endl;
+         std::cout << LoadH5::variable << " is not an int... you can't save this as an int." << std::endl;
       }
       int *data = new int[npts]; // allocate at run time what the size will be
       dataset.read(data, PredType::STD_I32LE); // Our standard integer
@@ -295,7 +296,7 @@ std::vector<float> LoadH5::getDatafloat() const
       H5T_class_t classt = datatype.getClass();
       if ( classt != 1 )
       {
-         std::cout << "This is not a float... you can't save this as a float." << std::endl;
+         std::cout << LoadH5::variable << " is not a float... you can't save this as a float." << std::endl;
       }
       float *data = new float[npts];
       dataset.read(data, PredType::IEEE_F32BE);
