@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 
-#include "h5rw.h"
+#include "H5Easy.h"
 
 using namespace std;
 
@@ -30,14 +30,14 @@ int main()
    dta.writeData(d);
 
    // To Load Data
-   //LoadH5 ldata;
-   //ldata.setFileName("testData.h5");
-   //ldata.setVarName("IntVecData");
-   //vector<int> idta = ldata.getData();
-   //ldata.setVarName("FloatVecData");
-   //vector<float>fdta = ldata.getData();
-   //ldata.setVarName("/my/group/FloatVecData");
-   //vector<float>gfdta = ldata.getData();
+   LoadH5 ldata;
+   ldata.setFileName("testData.h5");
+   ldata.setVarName("IntVecData");
+   vector<int> idta = ldata.getData();
+   ldata.setVarName("FloatVecData");
+   vector<float>fdta = ldata.getData();
+   ldata.setVarName("/my/group/FloatVecData");
+   vector<float>gfdta = ldata.getData();
   
    return 0;
 }
