@@ -251,9 +251,9 @@ std::vector<int> LoadH5::getDataint() const
          dataset.read(data, PredType::STD_I32LE); // Our standard integer
       else if ( (char*)order == "Little endian byte ordering (0)" && size == 8 ) 
          dataset.read(data, PredType::STD_I64LE);
-      else if ( (char*)order == "Big endian byte ordering (0)" && size == 1 )
+      else if ( (char*)order == "Big endian byte ordering (1)" && size == 1 )
          dataset.read(data, PredType::STD_I8BE); // Our standard integer
-      else if ( (char*)order == "endian byte ordering (0)" && size == 2 )
+      else if ( (char*)order == "Big endian byte ordering (1)" && size == 2 )
          dataset.read(data, PredType::STD_I16BE); // Our standard integer
       else if ( (char*)order == "Big endian byte ordering (1)" && size == 4 )
          dataset.read(data, PredType::STD_I32BE);

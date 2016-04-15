@@ -2,8 +2,8 @@
 ---------
 Simple implementations of HDF5 Reading and Writing
 
-The purpose of this is to provide an easier method to read and write from hdf5 formats. Currently the program works with only 
-I32LE integers and IEEE F32BE floats. The program will auto detect if you are trying to read or write in integer or float and
+The purpose of this is to provide an easier method to read and write from hdf5 formats. Currently the program works with  
+int, float, and double datatypes. The program will auto detect if you are trying to read or write in integer or float and
 properly store the data as such. With just a few lines you can read or write data easily. 
 
 ## How to use
@@ -31,11 +31,14 @@ If a user wants to read the data from the h5 file
 LoadH5 data;
 data.setFileName("myH5File.h5");
 data.setVarName("myVariableName");
-vector<int/float> loadedData = data.getData();
+vector<type> loadedData = data.getData();
 // For groups
 data.setVarName("/my/group/name/myVariableName");
-vector<int/float> loadedData = data.getData();
+vector<type> loadedData = data.getData();
 ```
+If you are reading double data and want to cast to a float just return the type as float. An error message will appear telling you that it is casting. 
+The same goes if you want to go from float to double, but remember that you don't actually have the same precision as a double (because the data isn't
+      actually double data).
 
 I have included a test file so that you can ensure that things are working properly.
 Note that this method also works for loading in group data. All you have to do is type the full path as the variable name.
@@ -44,8 +47,10 @@ Note that this method also works for loading in group data. All you have to do i
 ---------------
 - You are using vectors (if you aren't, you should for reasons other than using these files)
 - You are using 1D vectors (reading and writing)
-- You want a I32LE (long int 32) storage for your integers (reading and writing)
-- You want a IEEE 32 Float. (reading and writing)
+- You are reading "STD_I{8,16,32,64}{LE,BE}" or "IEEE_F{32,64}{LE,BE}" data (eg STD_I32LE)
+
+If you are unsure of the data type you are reading run `h5dump -H filename.h5`. This will show you
+the data type. Make sure it matches one of the above.
 
 ### ISSUES
 -----------
@@ -70,5 +75,5 @@ Please open an issue on the GitHub page for bugs in the code or feature requests
 ### TODO
 --------
 Features I plan on adding
-- Determining different int or float types when reading (aka someone who isn't using I32LE or IEEE F32BE)
-- Multidimensional arrays
+- Other data types (uints, chars, objects, others. Please request)
+- Multidimensional arrays 
