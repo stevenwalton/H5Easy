@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <typeinfo>
 
 #include "H5Cpp.h"
 
@@ -23,11 +24,11 @@ class WriteH5
       std::string variable;
       std::string filename;
       // sets our filename and our variable name
-      void setFileName(std::string name) {filename = name;};
-      void setVarName(std::string name) {variable = name;};
+      void setFileName ( std::string name ) {filename = name;};
+      void setVarName  ( std::string name ) {variable = name;};
       // Functions to be overloaded
-      void writeData(std::vector<int>);
-      void writeData(std::vector<float>);
+      template<typename T>
+      void writeData(const std::vector<T>);
 
       void createGroup(std::string);
 };
@@ -80,14 +81,28 @@ class LoadH5
  * ************************************ Write Functions *******************************************
  * ************************************************************************************************
  */
-// Integer implementation of our write data function
-void WriteH5::writeData(std::vector<int> data)
+// Numeric implementation of our write data function
+// Only accepts numerical values. Integers, floats, or doubles
+template<typename T>
+void WriteH5::writeData(std::vector<T> data)
 {
    Exception::dontPrint();
 
    uint itr = 0; // Used to ensure we don't get stuck in an infinite loop
    uint npts = data.size(); // size of our data
-   int *a = new int[npts]; // convert to an array
+   auto *a = new T[npts]; // convert to an array
+   char* type = (char*)(typeid(a[0]).name());
+   //if ( type == "i" )
+   //      predtype = PredType::STD_I32LE;
+   //else if ( type == "f" )
+   //      predtype = PredType::IEEE_F32LE;
+   //else if ( type == "d" )
+   //      predtype = PredType::IEEE_F64LE;
+   //else
+   //{
+   //      std::cout << "Unknown type! EXITING!" << std::endl;
+   //      exit(1);
+   //}
    int vrank = 1; // since we are using std::vectors we are storing everything in one dimension
    // convert std::vector to array. H5 does not seem to like the pointer implementation
    for (size_t i = 0; i < npts; i++)
@@ -110,11 +125,41 @@ void WriteH5::writeData(std::vector<int> data)
       {
          H5File file(FILE_NAME, H5F_ACC_RDWR);
          DataSpace dsp = DataSpace(vrank,dims);
-         DataSet dset = file.createDataSet(DATASET_NAME, PredType::STD_I32LE, dsp);
-         dset.write(a, PredType::STD_I32LE);
+         // int
+         if ( type == (char*)typeid(int).name() )
+         {
+            DataSet dset = file.createDataSet(DATASET_NAME, PredType::STD_I32LE, dsp);
+            dset.write(a, PredType::STD_I32LE);
+            dset.close();
+         }
+         // uint
+         else if ( type == (char*)typeid(uint).name() )
+         {
+            DataSet dset = file.createDataSet(DATASET_NAME, PredType::STD_U32LE, dsp);
+            dset.write(a, PredType::STD_U32LE);
+            dset.close();
+         }
+         // float
+         else if ( type == (char*)typeid(float).name() )
+         {
+            DataSet dset = file.createDataSet(DATASET_NAME, PredType::IEEE_F32LE, dsp);
+            dset.write(a, PredType::IEEE_F32LE);
+            dset.close();
+         }
+         // double
+         else if ( type == (char*)typeid(double).name() )
+         {
+            DataSet dset = file.createDataSet(DATASET_NAME, PredType::IEEE_F64LE, dsp);
+            dset.write(a, PredType::IEEE_F64LE);
+            dset.close();
+         }
+         else
+         {
+            std::cout << "Unknown data type! EXITING" << std::endl;
+            exit(1);
+         }
 
          // remember to close everything and delete our arrays
-         dset.close();
          dsp.close();
          file.close();
          delete[] a;
@@ -136,62 +181,6 @@ void WriteH5::writeData(std::vector<int> data)
             std::cout << "We've tried too many times in the Int writing sequence" << std::endl;
             break;
          }
-      }
-   }
-}
-
-
-// Almost exact copy of the integer implementation but overloaded with floats
-void WriteH5::writeData(std::vector<float> data)
-{
-   Exception::dontPrint();
-
-   uint itr = 0;
-   uint npts = data.size();
-   float*a = new float[npts];
-   int vrank = 1;
-   for (size_t i = 0; i < npts; i++)
-      a[i] = data[i];
-   hsize_t dims[1];
-   dims[0] = npts;
-   //std::cout << "We have WriteH5::filename: " << WriteH5::filename << std::endl;
-   //std::cout << "data: " << WriteH5::variable << std::endl;
-
-   const H5std_string FILE_NAME(WriteH5::filename);
-   H5std_string DATASET_NAME(WriteH5::variable);
-   while (true)
-   {
-      try
-      {
-
-         H5File file(FILE_NAME, H5F_ACC_RDWR);
-         
-         DataSpace dsp = DataSpace(vrank,dims);
-         DataSet dset = file.createDataSet(DATASET_NAME, PredType::IEEE_F32BE, dsp);
-         dset.write(a, PredType::IEEE_F32BE);
-         //std::cout << "Data written" << std::endl;
-
-         dset.close();
-         dsp.close();
-         file.close();
-         delete[] a;
-         break;
-      }
-      catch (FileIException error)
-      {
-         H5File file(FILE_NAME,H5F_ACC_TRUNC);
-         file.close();
-         itr++;
-         if (itr > 3)
-         {
-            std::cout << "We've tried too many times in the float writing sequence" << std::endl;
-            break;
-         }
-      }
-      catch (GroupIException error)
-      {
-         std::cout << "Group DNE" << std:: endl;
-         break;
       }
    }
 }

@@ -15,6 +15,9 @@ int main()
    for (size_t i = 0; i < 10; i++)
       f.push_back(i * 0.1);
 
+   vector<double> d;
+   for (size_t i = 0; i < 10; i++)
+      d.push_back(i * 0.1);
    // To write daat
    WriteH5 dta;
    dta.setFileName("testData.h5");
@@ -23,18 +26,18 @@ int main()
    dta.setVarName("FloatVecData");
    dta.writeData(f);
    dta.createGroup("/my/group/");
-   dta.setVarName("/my/group/FloatVecData");
-   dta.writeData(f);
+   dta.setVarName("/my/group/DoubleVecData");
+   dta.writeData(d);
 
    // To Load Data
-   LoadH5 ldata;
-   ldata.setFileName("testData.h5");
-   ldata.setVarName("IntVecData");
-   vector<int> idta = ldata.getData();
-   ldata.setVarName("FloatVecData");
-   vector<float>fdta = ldata.getData();
-   ldata.setVarName("/my/group/FloatVecData");
-   vector<float>gfdta = ldata.getData();
+   //LoadH5 ldata;
+   //ldata.setFileName("testData.h5");
+   //ldata.setVarName("IntVecData");
+   //vector<int> idta = ldata.getData();
+   //ldata.setVarName("FloatVecData");
+   //vector<float>fdta = ldata.getData();
+   //ldata.setVarName("/my/group/FloatVecData");
+   //vector<float>gfdta = ldata.getData();
   
    return 0;
 }
