@@ -45,6 +45,7 @@ class LoadH5
       // Read functions
       std::vector<int> getDataint() const;
       std::vector<float> getDatafloat() const;
+      std::vector<double> getDatadouble() const;
       // We now make a proxy class so that we can overload the return type and use a single
       // function to get data whether int or float. This could be made more advanced by 
       // adding more data types (such as double). 
@@ -61,6 +62,10 @@ class LoadH5
             operator std::vector<float>() const
             {
                return myOwner->getDatafloat();
+            }
+            operator std::vector<double>() const
+            {
+               return myOwner->getDatadouble();
             }
       };
       // Here we use the Proxy class to have a single getData function
@@ -92,18 +97,8 @@ void WriteH5::writeData(std::vector<T> data)
    uint npts = data.size(); // size of our data
    auto *a = new T[npts]; // convert to an array
    char* type = (char*)(typeid(a[0]).name());
-   //if ( type == "i" )
-   //      predtype = PredType::STD_I32LE;
-   //else if ( type == "f" )
-   //      predtype = PredType::IEEE_F32LE;
-   //else if ( type == "d" )
-   //      predtype = PredType::IEEE_F64LE;
-   //else
-   //{
-   //      std::cout << "Unknown type! EXITING!" << std::endl;
-   //      exit(1);
-   //}
    int vrank = 1; // since we are using std::vectors we are storing everything in one dimension
+
    // convert std::vector to array. H5 does not seem to like the pointer implementation
    for (size_t i = 0; i < npts; i++)
       a[i] = data[i];
@@ -111,8 +106,6 @@ void WriteH5::writeData(std::vector<T> data)
    hsize_t dims[1];
    dims[0] = npts;
    // Let's make sure we are doing what we want and output it to the std output
-   //std::cout << "We have WriteH5::filename: " << WriteH5::filename << std::endl;
-   //std::cout << "data: " << WriteH5::variable << std::endl;
 
    // We need to set these parameters for the H5 data file writing
    const H5std_string FILE_NAME(WriteH5::filename);
@@ -129,7 +122,7 @@ void WriteH5::writeData(std::vector<T> data)
          if ( type == (char*)typeid(int).name() )
          {
             DataSet dset = file.createDataSet(DATASET_NAME, PredType::STD_I32LE, dsp);
-            dset.write(a, PredType::STD_I32LE);
+            dset.write(a, PredType::STD_I32BE);
             dset.close();
          }
          // uint
@@ -243,9 +236,29 @@ std::vector<int> LoadH5::getDataint() const
       if ( classt != 0 )
       {
          std::cout << LoadH5::variable << " is not an int... you can't save this as an int." << std::endl;
+         exit(1);
       }
       int *data = new int[npts]; // allocate at run time what the size will be
-      dataset.read(data, PredType::STD_I32LE); // Our standard integer
+      IntType itype = dataset.getIntType();
+      H5std_string order_string;
+      H5T_order_t order = itype.getOrder( order_string );
+      size_t size = itype.getSize();
+      if ( (char*)order == "Little endian byte ordering (0)" && size == 1 )
+         dataset.read(data, PredType::STD_I8LE); // Our standard integer
+      else if ( (char*)order == "Little endian byte ordering (0)" && size == 2 )
+         dataset.read(data, PredType::STD_I16LE); // Our standard integer
+      else if ( (char*)order == "Little endian byte ordering (0)" && size == 4 )
+         dataset.read(data, PredType::STD_I32LE); // Our standard integer
+      else if ( (char*)order == "Little endian byte ordering (0)" && size == 8 ) 
+         dataset.read(data, PredType::STD_I64LE);
+      else if ( (char*)order == "Big endian byte ordering (0)" && size == 1 )
+         dataset.read(data, PredType::STD_I8BE); // Our standard integer
+      else if ( (char*)order == "endian byte ordering (0)" && size == 2 )
+         dataset.read(data, PredType::STD_I16BE); // Our standard integer
+      else if ( (char*)order == "Big endian byte ordering (1)" && size == 4 )
+         dataset.read(data, PredType::STD_I32BE);
+      else if ( (char*)order == "Big endian byte ordering (1)" && size == 8 )
+         dataset.read(data, PredType::STD_I64BE);
       std::vector<int> v(data, data + npts); // Arrays are nice, but vectors are better
       // Manage our memory properly
       delete[] data;
@@ -286,9 +299,27 @@ std::vector<float> LoadH5::getDatafloat() const
       if ( classt != 1 )
       {
          std::cout << LoadH5::variable << " is not a float... you can't save this as a float." << std::endl;
+         exit(1);
       }
+      FloatType ftype = dataset.getFloatType();
+      H5std_string order_string;
+      H5T_order_t order = ftype.getOrder( order_string);
+      size_t size = ftype.getSize();
       float *data = new float[npts];
-      dataset.read(data, PredType::IEEE_F32BE);
+      if ( (char*)order == "Little endian byte ordering (0)" && size == 4 )
+         dataset.read(data, PredType::IEEE_F32LE); // Our standard integer
+      else if ( (char*)order == "Little endian byte ordering (0)" && size == 8 ) 
+      {
+         dataset.read((float*)data, PredType::IEEE_F64LE);
+         std::cout << "NOTE: This is actually double data. We are casting to float" << std:: endl;
+      }
+      else if ( (char*)order == "Big endian byte ordering (1)" && size == 4 )
+         dataset.read(data, PredType::IEEE_F32BE);
+      else if ( (char*)order == "Big endian byte ordering (1)" && size == 8 )
+      {
+         std::cout << "NOTE: This is actually double data. We are casting to float" << std:: endl;
+         dataset.read((float*)data, PredType::IEEE_F64BE);
+      }
       std::vector<float> v(data, data + npts);
       delete[] data;
       dataspace.close();
@@ -307,6 +338,65 @@ std::vector<float> LoadH5::getDatafloat() const
    {
       error.printError();
       std::vector<float> err;
+      return err;
+   }
+}
+
+// Same as our int function, but with double
+std::vector<double> LoadH5::getDatadouble() const
+{
+   try
+   {
+      Exception::dontPrint();
+      H5std_string FILE_NAME(LoadH5::filename);
+      H5File file(FILE_NAME, H5F_ACC_RDONLY);
+      DataSet dataset = file.openDataSet(LoadH5::variable);
+      DataType datatype = dataset.getDataType();
+      DataSpace dataspace = dataset.getSpace();
+      const int npts = dataspace.getSimpleExtentNpoints();
+      H5T_class_t classt = datatype.getClass();
+      if ( classt != 1 )
+      {
+         std::cout << LoadH5::variable << " is not a float... you can't save this as a float." << std::endl;
+         exit(1);
+      }
+      FloatType ftype = dataset.getFloatType();
+      H5std_string order_string;
+      H5T_order_t order = ftype.getOrder( order_string);
+      size_t size = ftype.getSize();
+      double *data = new double[npts];
+      if ( (char*)order == "Little endian byte ordering (0)" && size == 4 )
+      {
+         std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
+         dataset.read((double*)data, PredType::IEEE_F32LE); // Our standard integer
+      }
+      else if ( (char*)order == "Little endian byte ordering (0)" && size == 8 ) 
+         dataset.read(data, PredType::IEEE_F64LE);
+      else if ( (char*)order == "Big endian byte ordering (1)" && size == 4 )
+      {
+         std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
+         dataset.read((double*)data, PredType::IEEE_F32BE);
+      }
+      else if ( (char*)order == "Big endian byte ordering (1)" && size == 8 )
+         dataset.read((double*)data, PredType::IEEE_F64BE);
+      std::vector<double> v(data, data + npts);
+      delete[] data;
+      dataspace.close();
+      datatype.close();
+      dataset.close();
+      file.close();
+      return v;
+   }
+   catch (FileIException error)
+   {
+      error.printError();
+      std::vector<double> err;
+      return err;
+   }
+   catch (GroupIException error)
+   {
+      error.printError();
+      std::vector<double> err;
       return err;
    }
 }
