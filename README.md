@@ -47,6 +47,17 @@ Note that this method also works for loading in group data. All you have to do i
 - You want a I32LE (long int 32) storage for your integers (reading and writing)
 - You want a IEEE 32 Float. (reading and writing)
 
+### ISSUES
+-----------
+###### Libraries not linking:
+ - Make sure hdf5-dev is installed. 
+ - Check that the libraries are being linked properly. They should be located in `/usr/include` but if you can't find them then run `sudo find /usr -name hdf5` or `sudo find /usr -name H5Cpp.h`. 
+   Test that this is the issue by running `h5c++ -I/path/that/you/found test.cpp -o test` If this works then add it to your LD_LIBRARY_PATH. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/that/you/found`. Add that to your `.bashrc` or shell's rc file. 
+###### h5dump not working
+ - Make sure that hdf5-tools is installed
+If you can not find these through your package manager just search for `hdf5`
+
+
 ### Dependencies
 ----------------
 - h5 libraries and its dependencies (if you use python and have Anaconda installed these will be sufficient)
