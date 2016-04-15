@@ -243,22 +243,24 @@ std::vector<int> LoadH5::getDataint() const
       H5std_string order_string;
       H5T_order_t order = itype.getOrder( order_string );
       size_t size = itype.getSize();
-      if ( (char*)order == "Little endian byte ordering (0)" && size == 1 )
+      if ( (order_string == "Little endian byte ordering (0)" || order == 0) && size == 1 )
          dataset.read(data, PredType::STD_I8LE); // Our standard integer
-      else if ( (char*)order == "Little endian byte ordering (0)" && size == 2 )
+      else if ( (order_string == "Little endian byte order_stringing (0)" || order== 0) && size == 2 )
          dataset.read(data, PredType::STD_I16LE); // Our standard integer
-      else if ( (char*)order == "Little endian byte ordering (0)" && size == 4 )
+      else if ( (order_string == "Little endian byte order_stringing (0)" || order== 0) && size == 4 )
          dataset.read(data, PredType::STD_I32LE); // Our standard integer
-      else if ( (char*)order == "Little endian byte ordering (0)" && size == 8 ) 
+      else if ( (order_string == "Little endian byte order_stringing (0)" || order== 0) && size == 8 ) 
          dataset.read(data, PredType::STD_I64LE);
-      else if ( (char*)order == "Big endian byte ordering (1)" && size == 1 )
+      else if ( (order_string == "Big endian byte order_stringing (1)" || order== 1) && size == 1 )
          dataset.read(data, PredType::STD_I8BE); // Our standard integer
-      else if ( (char*)order == "Big endian byte ordering (1)" && size == 2 )
+      else if ( (order_string == "Big endian byte order_stringing (1)" || order== 1) && size == 2 )
          dataset.read(data, PredType::STD_I16BE); // Our standard integer
-      else if ( (char*)order == "Big endian byte ordering (1)" && size == 4 )
+      else if ( (order_string == "Big endian byte order_stringing (1)" || order== 1) && size == 4 )
          dataset.read(data, PredType::STD_I32BE);
-      else if ( (char*)order == "Big endian byte ordering (1)" && size == 8 )
+      else if ( (order_string == "Big endian byte order_stringing (1)" || order== 1) && size == 8 )
          dataset.read(data, PredType::STD_I64BE);
+      else 
+         std::cout << "Did not find data type" << std::endl;
       std::vector<int> v(data, data + npts); // Arrays are nice, but vectors are better
       // Manage our memory properly
       delete[] data;
@@ -306,20 +308,22 @@ std::vector<float> LoadH5::getDatafloat() const
       H5T_order_t order = ftype.getOrder( order_string);
       size_t size = ftype.getSize();
       float *data = new float[npts];
-      if ( (char*)order == "Little endian byte ordering (0)" && size == 4 )
+      if ( (order_string == "Little endian byte order_stringing (0)" || order == 0) && size == 4 )
          dataset.read(data, PredType::IEEE_F32LE); // Our standard integer
-      else if ( (char*)order == "Little endian byte ordering (0)" && size == 8 ) 
+      else if (( order_string == "Little endian byte order_stringing (0)" || order == 0) && size == 8 ) 
       {
          dataset.read((float*)data, PredType::IEEE_F64LE);
          std::cout << "NOTE: This is actually double data. We are casting to float" << std:: endl;
       }
-      else if ( (char*)order == "Big endian byte ordering (1)" && size == 4 )
+      else if ( (order_string == "Big endian byte order_stringing (1)" || order == 1) && size == 4 )
          dataset.read(data, PredType::IEEE_F32BE);
-      else if ( (char*)order == "Big endian byte ordering (1)" && size == 8 )
+      else if ( (order_string == "Big endian byte order_stringing (1)" || order == 1) && size == 8 )
       {
          std::cout << "NOTE: This is actually double data. We are casting to float" << std:: endl;
          dataset.read((float*)data, PredType::IEEE_F64BE);
       }
+      else 
+         std::cout << "Did not find data type" << std::endl;
       std::vector<float> v(data, data + npts);
       delete[] data;
       dataspace.close();
@@ -370,15 +374,17 @@ std::vector<double> LoadH5::getDatadouble() const
          std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
          dataset.read((double*)data, PredType::IEEE_F32LE); // Our standard integer
       }
-      else if ( (char*)order == "Little endian byte ordering (0)" && size == 8 ) 
+      else if ( (order_string == "Little endian byte ordering (0)" || order == 0)&& size == 8 ) 
          dataset.read(data, PredType::IEEE_F64LE);
-      else if ( (char*)order == "Big endian byte ordering (1)" && size == 4 )
+      else if ( (order_string == "Big endian byte ordering (1)" || order == 1 )&& size == 4 )
       {
          std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
          dataset.read((double*)data, PredType::IEEE_F32BE);
       }
       else if ( (char*)order == "Big endian byte ordering (1)" && size == 8 )
          dataset.read((double*)data, PredType::IEEE_F64BE);
+      else 
+         std::cout << "Did not find data type" << std::endl;
       std::vector<double> v(data, data + npts);
       delete[] data;
       dataspace.close();

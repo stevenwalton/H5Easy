@@ -36,9 +36,8 @@ vector<type> loadedData = data.getData();
 data.setVarName("/my/group/name/myVariableName");
 vector<type> loadedData = data.getData();
 ```
-If you are reading double data and want to cast to a float just return the type as float. An error message will appear telling you that it is casting. 
-The same goes if you want to go from float to double, but remember that you don't actually have the same precision as a double (because the data isn't
-      actually double data).
+If you are trying to read a double as a float you will get an error. If you wish to cast you 
+should do so after the data load
 
 I have included a test file so that you can ensure that things are working properly.
 Note that this method also works for loading in group data. All you have to do is type the full path as the variable name.
@@ -75,5 +74,6 @@ Please open an issue on the GitHub page for bugs in the code or feature requests
 ### TODO
 --------
 Features I plan on adding
+- cast doubles to floats and vise versa
 - Other data types (uints, chars, objects, others. Please request)
 - Multidimensional arrays 

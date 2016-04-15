@@ -36,8 +36,11 @@ int main()
    vector<int> idta = ldata.getData();
    ldata.setVarName("FloatVecData");
    vector<float>fdta = ldata.getData();
-   ldata.setVarName("/my/group/FloatVecData");
-   vector<float>gfdta = ldata.getData();
+   ldata.setVarName("/my/group/DoubleVecData");
+   vector<double>gfdta = ldata.getData();
+   for ( vector<float>::iterator it = fdta.begin(); it != fdta.end(); ++it )
+      cout << *it << endl;
+
   
    return 0;
 }
