@@ -149,7 +149,7 @@ void WriteH5::writeData(std::vector<T> data)
          if ( type == (char*)typeid(int).name() )
          {
             DataSet dset = file.createDataSet(DATASET_NAME, PredType::STD_I32LE, dsp);
-            dset.write(a, PredType::STD_I32BE);
+            dset.write(a, PredType::STD_I32LE);
             dset.close();
          }
          // uint
