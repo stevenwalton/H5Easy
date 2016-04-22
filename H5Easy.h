@@ -396,19 +396,19 @@ std::vector<double> LoadH5::getDatadouble() const
       H5T_order_t order = ftype.getOrder( order_string);
       size_t size = ftype.getSize();
       double *data = new double[npts];
-      if ( (char*)order == "Little endian byte ordering (0)" && size == 4 )
+      if ( ((char*)order == "Little endian byte ordering (0)" || order==0) && size == 4 )
       {
          std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
          dataset.read((double*)data, PredType::IEEE_F32LE); // Our standard integer
       }
-      else if ( (order_string == "Little endian byte ordering (0)" || order == 0)&& size == 8 ) 
+      else if ( (order_string == "Little endian byte ordering (0)" || order == 0) && size == 8 ) 
          dataset.read(data, PredType::IEEE_F64LE);
-      else if ( (order_string == "Big endian byte ordering (1)" || order == 1 )&& size == 4 )
+      else if ( (order_string == "Big endian byte ordering (1)" || order == 1 ) && size == 4 )
       {
          std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
          dataset.read((double*)data, PredType::IEEE_F32BE);
       }
-      else if ( (char*)order == "Big endian byte ordering (1)" && size == 8 )
+      else if ( ((char*)order == "Big endian byte ordering (1)" || order ==1 ) && size == 8 )
          dataset.read((double*)data, PredType::IEEE_F64BE);
       else 
          std::cout << "Did not find data type" << std::endl;
