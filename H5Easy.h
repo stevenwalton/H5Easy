@@ -120,12 +120,6 @@ class LoadH5
 
 
 #endif
-/*
- * Source file for the easy implementation of h5 read and writing
- * Created by: Steven Walton
- * Email: walton.stevenj@gmail.com
- */
-//#include "h5rw.h"
 
 /*
  * ************************************************************************************************
@@ -242,10 +236,19 @@ void WriteH5::writeData(std::vector<std::vector<T> > data)
    for (size_t i = 0; i < dim1; ++i)
       for ( size_t j = 0; j < dim2; ++j )
          a[i][j] = data[i][j];
+   /* outputting array to check
+   for (size_t i = 0; i < dim1; ++i)
+   {
+      for ( size_t j = 0; j < dim2; ++j )
+         std::cout << a[i][j] << "\t";
+      std::cout << std::endl;
+   }
+   */
    // conventional syntax for H5 data writing
    hsize_t dims[2];
-   dims[0] = dim1;
-   dims[1] = dim2;
+   dims[0] = (int)dim1;
+   dims[1] = (int)dim2;
+   std::cout << (int)dim1 << std::endl;
    //hid_t memspace_id = H5Screate_simple(vrank, dims, NULL);
    // Let's make sure we are doing what we want and output it to the std output
 
@@ -600,6 +603,14 @@ std::vector<std::vector<double> > LoadH5::getData2Ddouble() const
          std::cout << "Did not find data type" << std::endl;
       std::vector<std::vector<double> > v = {dims[0], std::vector<double>(dims[1])};//data, data + npts);
       // Assign 2D vector
+      /* For checking array read
+      for (size_t i = 0; i < dims[0]; ++i)
+      {
+         for (size_t j = 0; j < dims[1]; ++j)
+            std::cout << data[i][j] << "\t";
+         std::cout << std::endl;
+      }
+      */
       for (std::size_t i = 0; i < dims[0]; ++i )
          v[i] = std::vector<double>(data[i], data[i] + dims[1]);
       delete[] data;
