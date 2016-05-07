@@ -45,19 +45,28 @@ Note that this method also works for loading in group data. All you have to do i
 ### Assumptions
 ---------------
 - You are using vectors (if you aren't, you should for reasons other than using these files)
-- You are using 1D vectors (reading and writing)
+- You are using 1D or 2D vectors (reading and writing)
 - You are reading "STD_I{8,16,32,64}{LE,BE}" or "IEEE_F{32,64}{LE,BE}" data (eg STD_I32LE)
+- You are compiling with `-std=c++11` or higher. I suggest aliasing. `alias h5c++='h5c++ -std=c++11'`
 
 If you are unsure of the data type you are reading run `h5dump -H filename.h5`. This will show you
 the data type. Make sure it matches one of the above.
 
 ### ISSUES
 -----------
+###### Data written is garbage
+- Check output from `h5dump` to make sure that it is really garbage. 
+- Check that you aren't casting when writing. Cast before. 
+###### Data returned is garbage
+- Check output from `h5dump` and ensure that data was written correctly.
+- Check that you are returning the correct type. You cannot cast data during read. Casting must be done after data is read.
 ###### Libraries not linking:
  - Make sure hdf5-dev is installed. 
  - Check that the libraries are being linked properly. They should be located in `/usr/include` but if you can't find them then run `sudo find /usr -name hdf5` or `sudo find /usr -name H5Cpp.h`. 
    - Test that this is the issue by running `h5c++ -I/path/that/you/found test.cpp -o test` If this works then add it to your LD_LIBRARY_PATH. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/that/you/found`. Add that to your `.bashrc` or shell's rc file. 
+##### Code won't compile
    - If you have Anaconda (python) installed DO NOT use its `h5c++`. If you are still getting library problems check the output of `which h5c++`. It should point to `/usr/bin/h5c++`, if you installed it through apt
+   - Check that you are using `/usr/bin/h5c++`
 
 ###### h5dump not working:
  - Make sure that hdf5-tools is installed
@@ -77,4 +86,4 @@ Please open an issue on the GitHub page for bugs in the code or feature requests
 Features I plan on adding
 - cast doubles to floats and vise versa
 - Other data types (uints, chars, objects, others. Please request)
-- Multidimensional arrays 
+- N-dimensional arrays 
