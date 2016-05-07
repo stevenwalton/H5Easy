@@ -99,7 +99,6 @@ class LoadH5
             {
                return myOwner->getDatadouble();
             }
-            /*
             operator std::vector<std::vector<int> >() const
             {
                return myOwner->getData2Dint();
@@ -108,7 +107,6 @@ class LoadH5
             {
                return myOwner->getData2Dfloat();
             }
-            */
             operator std::vector<std::vector<double> >() const
             {
                return myOwner->getData2Ddouble();
@@ -226,10 +224,17 @@ void WriteH5::writeData(std::vector<std::vector<T> > data)
    uint itr = 0; // Used to ensure we don't get stuck in an infinite loop
    uint dim1 = data.size(); // size of our data
    uint dim2 = data[0].size();
-   auto **a = new T*[dim1]; // convert to an array
+   T **a = new T*[dim1]; // convert to an array
    for ( size_t i = 0; i < dim1; ++i )
       a[i] = new T[dim2];
    char* type = (char*)(typeid(a[0][0]).name());
+   // We must create buffer arrays so that we can cast to array type and not use pointers (hdf5 is dumb and can't use pointers)
+   int intBuff[dim1][dim2];
+   uint uintBuff[dim1][dim2];
+   float floatBuff[dim1][dim2];
+   double doubleBuff[dim1][dim2];
+
+   //char* type = T;
    int vrank = 2; // since we are using std::vectors we are storing everything in one dimension
 
    // convert std::vector to array. H5 does not seem to like the pointer implementation
@@ -248,7 +253,6 @@ void WriteH5::writeData(std::vector<std::vector<T> > data)
    hsize_t dims[2];
    dims[0] = (int)dim1;
    dims[1] = (int)dim2;
-   std::cout << (int)dim1 << std::endl;
    //hid_t memspace_id = H5Screate_simple(vrank, dims, NULL);
    // Let's make sure we are doing what we want and output it to the std output
 
@@ -266,29 +270,42 @@ void WriteH5::writeData(std::vector<std::vector<T> > data)
          // int
          if ( type == (char*)typeid(int).name() )
          {
+            for ( size_t i = 0; i < dim1; ++i )
+               for ( size_t j = 0; j < dim2; ++j )
+                  intBuff[i][j] = a[i][j];
+
             DataSet dset = file.createDataSet(DATASET_NAME, PredType::STD_I32LE, dsp);
-            dset.write(a, PredType::STD_I32LE);
+            dset.write(intBuff, PredType::STD_I32LE);
             dset.close();
          }
          // uint
          else if ( type == (char*)typeid(uint).name() )
          {
+            for ( size_t i = 0; i < dim1; ++i )
+               for ( size_t j = 0; j < dim2; ++j )
+                  uintBuff[i][j] = a[i][j];
             DataSet dset = file.createDataSet(DATASET_NAME, PredType::STD_U32LE, dsp);
-            dset.write(a, PredType::STD_U32LE);
+            dset.write(uintBuff, PredType::STD_U32LE);
             dset.close();
          }
          // float
          else if ( type == (char*)typeid(float).name() )
          {
+            for ( size_t i = 0; i < dim1; ++i )
+               for ( size_t j = 0; j < dim2; ++j )
+                  floatBuff[i][j] = a[i][j];
             DataSet dset = file.createDataSet(DATASET_NAME, PredType::IEEE_F32LE, dsp);
-            dset.write(a, PredType::IEEE_F32LE);
+            dset.write(floatBuff, PredType::IEEE_F32LE);
             dset.close();
          }
          // double
          else if ( type == (char*)typeid(double).name() )
          {
+            for ( size_t i = 0; i < dim1; ++i )
+               for ( size_t j = 0; j < dim2; ++j )
+                  doubleBuff[i][j] = a[i][j];
             DataSet dset = file.createDataSet(DATASET_NAME, PredType::IEEE_F64LE, dsp);
-            dset.write(a, PredType::IEEE_F64LE);
+            dset.write(doubleBuff, PredType::IEEE_F64LE);
             dset.close();
          }
          else
@@ -300,9 +317,11 @@ void WriteH5::writeData(std::vector<std::vector<T> > data)
          // remember to close everything and delete our arrays
          dsp.close();
          file.close();
+         /*
          for ( size_t i = 0; i < dim1; ++i )
             delete[] a[i];
          delete[] a;
+         */
          break;
       }
       // Here we are catching if the file does not exist. We will then create a new file and return
@@ -557,7 +576,154 @@ std::vector<double> LoadH5::getDatadouble() const
 // 2-D VECTORS
 //
 // Same as our int function, but with double
+// INT
+std::vector<std::vector<int> > LoadH5::getData2Dint() const
+{
+   try
+   {
+      Exception::dontPrint();
+      H5std_string FILE_NAME(LoadH5::filename);
+      H5File file(FILE_NAME, H5F_ACC_RDONLY);
+      DataSet dataset = file.openDataSet(LoadH5::variable);
+      DataType datatype = dataset.getDataType();
+      DataSpace dataspace = dataset.getSpace();
+      //const int npts = dataspace.getSimpleExtentNpoints();
+      int rank = dataspace.getSimpleExtentNdims();
+      hsize_t dims[rank];
+      dataspace.getSimpleExtentDims(dims);
+      H5T_class_t classt = datatype.getClass();
+      /*
+      if ( classt != 1 )
+      {
+         std::cout << LoadH5::variable << " is not a float... you can't save this as a float." << std::endl;
+         exit(1);
+      }
+      */
+      FloatType ftype = dataset.getFloatType();
+      H5std_string order_string;
+      H5T_order_t order = ftype.getOrder( order_string);
+      size_t size = ftype.getSize();
+      int dim1 = dims[0];
+      int dim2 = dims[1];
+      int data[dim1][dim2];
+      //int **data = new int*[dims[0]];
+      //for ( size_t i = 0; i < dims[0]; ++i )
+      //   data[i] = new int[dims[1]];
+      if ( order==0 && size == 1 )
+         dataset.read(data, PredType::STD_I8LE); // Our standard integer
+      else if ( order == 1 && size == 1 ) 
+         dataset.read(data, PredType::STD_I8BE);
+      else if ( order == 0 && size == 2 ) 
+         dataset.read(data, PredType::STD_I16LE);
+      else if ( order == 1 && size == 2 ) 
+         dataset.read(data, PredType::STD_I16BE);
+      else if ( order == 0 && size == 4 ) 
+         dataset.read(data, PredType::STD_I32LE);
+      else if ( order == 1 && size == 4 ) 
+         dataset.read(data, PredType::STD_I32BE);
+      else if ( order == 0 && size == 8 ) 
+         dataset.read(data, PredType::STD_I64LE);
+      else if ( order == 1 && size == 8 ) 
+         dataset.read(data, PredType::STD_I64BE);
+      else 
+         std::cout << "Did not find data type" << std::endl;
+      //std::cout << typeid(data).name() << std::endl;
+      std::vector<std::vector<int> > v(dim1, std::vector<int>(dim2,0));//data, data + npts);
+      // Assign 2D vector
+      for ( size_t i = 0; i < dim1; ++i )
+         for ( size_t j = 0; j < dim2; ++j )
+            v[i][j] = data[i][j];
+      //delete[] data;
+      dataspace.close();
+      datatype.close();
+      dataset.close();
+      file.close();
+      return v;
+   }
+   catch (FileIException error)
+   {
+      error.printError();
+      std::vector<std::vector<int> > err;
+      return err;
+   }
+   catch (GroupIException error)
+   {
+      error.printError();
+      std::vector<std::vector<int> > err;
+      return err;
+   }
+}
+// FLOAT
+std::vector<std::vector<float> > LoadH5::getData2Dfloat() const
+{
+   try
+   {
+      Exception::dontPrint();
+      H5std_string FILE_NAME(LoadH5::filename);
+      H5File file(FILE_NAME, H5F_ACC_RDONLY);
+      DataSet dataset = file.openDataSet(LoadH5::variable);
+      DataType datatype = dataset.getDataType();
+      DataSpace dataspace = dataset.getSpace();
+      //const int npts = dataspace.getSimpleExtentNpoints();
+      int rank = dataspace.getSimpleExtentNdims();
+      hsize_t dims[rank];
+      dataspace.getSimpleExtentDims(dims);
+      H5T_class_t classt = datatype.getClass();
+      /*
+      if ( classt != 1 )
+      {
+         std::cout << LoadH5::variable << " is not a float... you can't save this as a float." << std::endl;
+         exit(1);
+      }
+      */
+      FloatType ftype = dataset.getFloatType();
+      H5std_string order_string;
+      H5T_order_t order = ftype.getOrder( order_string);
+      size_t size = ftype.getSize();
+      int dim1 = dims[0];
+      int dim2 = dims[1];
+      float data[dim1][dim2];
+      //float **data = new float*[dims[0]];
+      //for ( size_t i = 0; i < dims[0]; ++i )
+      //   data[i] = new float[dims[1]];
+      if ( order==0 && size == 4 )
+         dataset.read(data, PredType::IEEE_F32LE); // Our standard integer
+      else if ( order == 0 && size == 8 ) 
+         dataset.read(data, PredType::IEEE_F64LE);
+      else if ( (order_string == "Big endian byte ordering (1)" || order == 1 ) && size == 4 )
+         dataset.read(data, PredType::IEEE_F32BE);
+      else if ( order ==1 && size == 8 )
+         dataset.read(data, PredType::IEEE_F64BE);
+      else 
+         std::cout << "Did not find data type" << std::endl;
+      //std::cout << typeid(data).name() << std::endl;
+      std::vector<std::vector<float> > v(dim1, std::vector<float>(dim2,0));//data, data + npts);
+      // Assign 2D vector
+      for ( size_t i = 0; i < dim1; ++i )
+         for ( size_t j = 0; j < dim2; ++j )
+            v[i][j] = data[i][j];
+      //delete[] data;
+      dataspace.close();
+      datatype.close();
+      dataset.close();
+      file.close();
+      return v;
+   }
+   catch (FileIException error)
+   {
+      error.printError();
+      std::vector<std::vector<float> > err;
+      return err;
+   }
+   catch (GroupIException error)
+   {
+      error.printError();
+      std::vector<std::vector<float> > err;
+      return err;
+   }
+}
 
+// DOUBLE
 std::vector<std::vector<double> > LoadH5::getData2Ddouble() const
 {
    try
@@ -573,47 +739,40 @@ std::vector<std::vector<double> > LoadH5::getData2Ddouble() const
       hsize_t dims[rank];
       dataspace.getSimpleExtentDims(dims);
       H5T_class_t classt = datatype.getClass();
+      /*
       if ( classt != 1 )
       {
          std::cout << LoadH5::variable << " is not a float... you can't save this as a float." << std::endl;
          exit(1);
       }
+      */
       FloatType ftype = dataset.getFloatType();
       H5std_string order_string;
       H5T_order_t order = ftype.getOrder( order_string);
       size_t size = ftype.getSize();
-      double **data = new double*[dims[0]];
-      for ( size_t i = 0; i < dims[0]; ++i )
-         data[i] = new double[dims[1]];
+      int dim1 = dims[0];
+      int dim2 = dims[1];
+      double data[dim1][dim2];
+      //double **data = new double*[dims[0]];
+      //for ( size_t i = 0; i < dims[0]; ++i )
+      //   data[i] = new double[dims[1]];
       if ( order==0 && size == 4 )
-      {
-         std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
-         dataset.read((double*)data, PredType::IEEE_F32LE); // Our standard integer
-      }
+         dataset.read(data, PredType::IEEE_F32LE); // Our standard integer
       else if ( order == 0 && size == 8 ) 
          dataset.read(data, PredType::IEEE_F64LE);
       else if ( (order_string == "Big endian byte ordering (1)" || order == 1 ) && size == 4 )
-      {
-         std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
-         dataset.read((double*)data, PredType::IEEE_F32BE);
-      }
+         dataset.read(data, PredType::IEEE_F32BE);
       else if ( order ==1 && size == 8 )
-         dataset.read((double*)data, PredType::IEEE_F64BE);
+         dataset.read(data, PredType::IEEE_F64BE);
       else 
          std::cout << "Did not find data type" << std::endl;
-      std::vector<std::vector<double> > v = {dims[0], std::vector<double>(dims[1])};//data, data + npts);
+      //std::cout << typeid(data).name() << std::endl;
+      std::vector<std::vector<double> > v(dim1, std::vector<double>(dim2,0));//data, data + npts);
       // Assign 2D vector
-      /* For checking array read
-      for (size_t i = 0; i < dims[0]; ++i)
-      {
-         for (size_t j = 0; j < dims[1]; ++j)
-            std::cout << data[i][j] << "\t";
-         std::cout << std::endl;
-      }
-      */
-      for (std::size_t i = 0; i < dims[0]; ++i )
-         v[i] = std::vector<double>(data[i], data[i] + dims[1]);
-      delete[] data;
+      for ( size_t i = 0; i < dim1; ++i )
+         for ( size_t j = 0; j < dim2; ++j )
+            v[i][j] = data[i][j];
+      //delete[] data;
       dataspace.close();
       datatype.close();
       dataset.close();
