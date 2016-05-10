@@ -117,7 +117,6 @@ class LoadH5
 };
 
 
-#endif
 
 /*
  * ************************************************************************************************
@@ -793,3 +792,4 @@ std::vector<std::vector<double> > LoadH5::getData2Ddouble() const
    }
 }
 
+#endif

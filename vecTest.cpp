@@ -10,10 +10,10 @@ using namespace H5;
 #define dim2 3
 int main()
 {
-   vector<vector<float> > v(dim1, vector<float>(dim2));
+   vector<vector<int> > v(dim1, vector<int>(dim2));
    for ( size_t i = 0; i < dim1; ++i )
       for ( size_t j = 0; j < dim2; ++j )
-         v[i][j] = 3.;
+         v[i][j] = 3;
    //for ( size_t i = 0; i < dim1; ++i )
    //{
    //   for ( size_t j = 0; j < dim2; ++j )
@@ -61,7 +61,7 @@ int main()
    LoadH5 data;
    data.setFileName("dim.h5");
    data.setVarName("vecvecdouble");
-   vector<vector<float> > vv = data.getData();
+   vector<vector<int> > vv = data.getData();
    cout << "Data is read" << endl;
    for ( size_t i = 0; i < dim1; ++i )
    {
