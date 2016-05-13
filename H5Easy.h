@@ -590,7 +590,7 @@ std::vector<std::vector<int> > LoadH5::getData2Dint() const
       int rank = dataspace.getSimpleExtentNdims();
       hsize_t dims[rank];
       dataspace.getSimpleExtentDims(dims);
-      H5T_class_t classt = datatype.getClass();
+      //H5T_class_t classt = datatype.getClass();
       /*
       if ( classt != 1 )
       {
@@ -602,8 +602,8 @@ std::vector<std::vector<int> > LoadH5::getData2Dint() const
       H5std_string order_string;
       H5T_order_t order = ftype.getOrder( order_string);
       size_t size = ftype.getSize();
-      int dim1 = dims[0];
-      int dim2 = dims[1];
+      size_t dim1 = dims[0];
+      size_t dim2 = dims[1];
       int data[dim1][dim2];
       //int **data = new int*[dims[0]];
       //for ( size_t i = 0; i < dims[0]; ++i )
@@ -667,7 +667,7 @@ std::vector<std::vector<float> > LoadH5::getData2Dfloat() const
       int rank = dataspace.getSimpleExtentNdims();
       hsize_t dims[rank];
       dataspace.getSimpleExtentDims(dims);
-      H5T_class_t classt = datatype.getClass();
+      //H5T_class_t classt = datatype.getClass();
       /*
       if ( classt != 1 )
       {
@@ -679,8 +679,8 @@ std::vector<std::vector<float> > LoadH5::getData2Dfloat() const
       H5std_string order_string;
       H5T_order_t order = ftype.getOrder( order_string);
       size_t size = ftype.getSize();
-      int dim1 = dims[0];
-      int dim2 = dims[1];
+      size_t dim1 = dims[0];
+      size_t dim2 = dims[1];
       float data[dim1][dim2];
       //float **data = new float*[dims[0]];
       //for ( size_t i = 0; i < dims[0]; ++i )
@@ -737,7 +737,7 @@ std::vector<std::vector<double> > LoadH5::getData2Ddouble() const
       int rank = dataspace.getSimpleExtentNdims();
       hsize_t dims[rank];
       dataspace.getSimpleExtentDims(dims);
-      H5T_class_t classt = datatype.getClass();
+      //H5T_class_t classt = datatype.getClass();
       /*
       if ( classt != 1 )
       {
@@ -749,8 +749,8 @@ std::vector<std::vector<double> > LoadH5::getData2Ddouble() const
       H5std_string order_string;
       H5T_order_t order = ftype.getOrder( order_string);
       size_t size = ftype.getSize();
-      int dim1 = dims[0];
-      int dim2 = dims[1];
+      size_t dim1 = dims[0];
+      size_t dim2 = dims[1];
       double data[dim1][dim2];
       //double **data = new double*[dims[0]];
       //for ( size_t i = 0; i < dims[0]; ++i )
