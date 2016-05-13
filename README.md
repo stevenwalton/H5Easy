@@ -75,7 +75,18 @@ If you can not find these through your package manager just search for `hdf5`
 
 ### Dependencies
 ----------------
-- h5 libraries and its dependencies (if you use python and have Anaconda installed these will be sufficient)
+- h5 libraries and its dependencies
+- libhdf5-dev
+- hdf5-tools
+- h5utils
+- libpthread.so.0
+- libsz.so.2
+- libz.so.1
+- libdl.so.2
+- libstdc++.so.6
+- libm.so.6
+- libgcc_s.so.1
+- libc.so.6
 
 ### Problems / Feature Requests
 --------------
