@@ -44,10 +44,10 @@ Note that this method also works for loading in group data. All you have to do i
 
 ### Assumptions
 ---------------
-- You are using vectors (if you aren't, you should for reasons other than using these files)
+- You are using vectors or scalar values (int, float, double)
 - You are using 1D or 2D vectors (reading and writing)
 - You are reading "STD_I{8,16,32,64}{LE,BE}" or "IEEE_F{32,64}{LE,BE}" data (eg STD_I32LE)
-- You are compiling with `-std=c++11` or higher. I suggest aliasing. `alias h5c++='h5c++ -std=c++11'`
+- You are compiling with `-std=c++11` or higher. 
 
 If you are unsure of the data type you are reading run `h5dump -H filename.h5`. This will show you
 the data type. Make sure it matches one of the above.
@@ -98,3 +98,4 @@ Features I plan on adding
 - cast doubles to floats and vise versa
 - Other data types (uints, chars, objects, others. Please request)
 - N-dimensional arrays 
+- More generalized code

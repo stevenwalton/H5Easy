@@ -58,6 +58,8 @@ class WriteH5
       void writeData(const std::vector<T>);
       template<typename T>
       void writeData(const std::vector<std::vector<T> >);
+      template<typename T>
+      void writeData(const T);
 
       void createGroup(std::string);
 };
@@ -72,9 +74,12 @@ class LoadH5
       void setFileName(std::string name) {filename = name;};
       void setVarName(std::string name) {variable = name;};
       // Read functions
-      std::vector<int> getDataint() const;
-      std::vector<float> getDatafloat() const;
-      std::vector<double> getDatadouble() const;
+      int getDataint() const;
+      float getDatafloat() const;
+      double getDatadouble() const;
+      std::vector<int> getDataVint() const;
+      std::vector<float> getDataVfloat() const;
+      std::vector<double> getDataVDouble() const;
       std::vector<std::vector<int> > getData2Dint() const;
       std::vector<std::vector<float> > getData2Dfloat() const;
       std::vector<std::vector<double> > getData2Ddouble() const;
@@ -87,17 +92,29 @@ class LoadH5
             LoadH5 const* myOwner;
          public:
             Proxy( const LoadH5* owner ) : myOwner( owner ) {}
+            operator int() const
+            {
+                return myOwner->getDataint();
+            }
+            operator float() const
+            {
+                return myOwner->getDatafloat();
+            }
+            operator double() const
+            {
+                return myOwner->getDatadouble();
+            }
             operator std::vector<int>() const
             {
-               return myOwner->getDataint();
+               return myOwner->getDataVint();
             }
             operator std::vector<float>() const
             {
-               return myOwner->getDatafloat();
+               return myOwner->getDataVfloat();
             }
             operator std::vector<double>() const
             {
-               return myOwner->getDatadouble();
+               return myOwner->getDataVDouble();
             }
             operator std::vector<std::vector<int> >() const
             {
@@ -123,8 +140,72 @@ class LoadH5
  * ************************************ Write Functions *******************************************
  * ************************************************************************************************
  */
+
 // Numeric implementation of our write data function
 // Only accepts numerical values. Integers, floats, or doubles
+
+template<typename T>
+void WriteH5::writeData(T data)
+{
+    Exception::dontPrint();
+    uint itr = 0;
+    auto *a = new T{data};
+    char* type = (char*)(typeid(T).name());
+    int vrank = 0;
+    hsize_t dims[1];
+    dims[0] = 1;
+    const H5std_string FILE_NAME(WriteH5::filename);
+    H5std_string DATASET_NAME(WriteH5::variable);
+    while (true)
+    {
+        try
+        {
+            H5File file(FILE_NAME, H5F_ACC_RDWR);
+            DataSpace dsp = DataSpace(vrank, dims);
+            // int
+            if ( type == (char*)typeid(int).name() )
+            {
+                DataSet dset = file.createDataSet(DATASET_NAME, PredType::STD_I32LE, dsp);
+                dset.write(a, PredType::STD_I32LE);
+                dset.close();
+            }
+            // float
+            else if ( type == (char*)typeid(float).name() )
+            {
+                DataSet dset = file.createDataSet(DATASET_NAME, PredType::IEEE_F32LE, dsp);
+                dset.write(a, PredType::IEEE_F32LE);
+                dset.close();
+            }
+            else if ( type == (char*)typeid(double).name() )
+            {
+                DataSet dset = file.createDataSet(DATASET_NAME, PredType::IEEE_F64LE, dsp);
+                dset.write(a, PredType::IEEE_F64LE);
+                dset.close();
+            }
+            else
+            {
+                std::cout << "Unknown data type! EXITING" << std::endl;
+                exit(1);
+            }
+            dsp.close();
+            file.close();
+            delete a;
+            break;
+        }
+        catch (FileIException error)
+        {
+            H5File file(FILE_NAME, H5F_ACC_TRUNC);
+            file.close();
+            itr++;
+            if ( itr > 3) 
+            {
+                std::cout << "We've tried too many times in the Int writing sequence" << std::endl;
+                break;
+            }
+        }
+    }
+}
+
 template<typename T>
 void WriteH5::writeData(std::vector<T> data)
 {
@@ -353,8 +434,190 @@ void WriteH5::createGroup(std::string groupName)
  * ************************************************************************************************
  */
 
+int LoadH5::getDataint() const
+{
+    try
+    {
+        Exception::dontPrint();
+        H5std_string FILE_NAME(LoadH5::filename);
+        H5File file(FILE_NAME, H5F_ACC_RDONLY); // Only reads
+        DataSet dataset = file.openDataSet(LoadH5::variable);
+        DataType datatype = dataset.getDataType();
+        DataSpace dataspace = dataset.getSpace();
+        const int npts = dataspace.getSimpleExtentNpoints();
+        H5T_class_t classt = datatype.getClass();
+        if ( classt != 0 )
+        {
+            std::cout << LoadH5::variable << " is not an int... you can't save this as an int." << std::endl;
+            exit(1);
+        }
+        int *data = new int;
+        IntType itype = dataset.getIntType();
+        H5std_string order_string;
+        FloatType ftype = dataset.getFloatType();
+        H5T_order_t order = ftype.getOrder( order_string);
+        size_t size = ftype.getSize();
+        if ( order == 0 && size == 1 )
+           dataset.read(data, PredType::STD_I8LE); // Our standard integer
+        else if ( order== 0 && size == 2 )
+           dataset.read(data, PredType::STD_I16LE); // Our standard integer
+        else if ( order== 0 && size == 4 )
+           dataset.read(data, PredType::STD_I32LE); // Our standard integer
+        else if ( order== 0 && size == 8 ) 
+           dataset.read(data, PredType::STD_I64LE);
+        else if ( order== 1 && size == 1 )
+           dataset.read(data, PredType::STD_I8BE); // Our standard integer
+        else if ( order== 1 && size == 2 )
+           dataset.read(data, PredType::STD_I16BE); // Our standard integer
+        else if ( order== 1 && size == 4 )
+           dataset.read(data, PredType::STD_I32BE);
+        else if ( order== 1 && size == 8 )
+           dataset.read(data, PredType::STD_I64BE);
+        else 
+           std::cout << "Did not find data type" << std::endl;
+        // Manage our memory properly
+        int v = *data;
+        delete data;
+        dataspace.close();
+        datatype.close();
+        dataset.close();
+        file.close();
+        return v;
+   }
+    catch (FileIException error)
+    {
+       error.printError();
+       int err;
+       return err;
+    }
+    catch (GroupIException error)
+    {
+       error.printError();
+       int err;
+       return err;
+    }
+}
+float LoadH5::getDatafloat() const
+{
+   try
+   {
+      Exception::dontPrint();
+      //std::cout << "Getting float data" << std::endl;
+      H5std_string FILE_NAME(LoadH5::filename);
+      H5File file(FILE_NAME, H5F_ACC_RDONLY);
+      DataSet dataset = file.openDataSet(LoadH5::variable);
+      DataType datatype = dataset.getDataType();
+      DataSpace dataspace = dataset.getSpace();
+      const int npts = dataspace.getSimpleExtentNpoints();
+      H5T_class_t classt = datatype.getClass();
+      if ( classt != 1 )
+      {
+         std::cout << LoadH5::variable << " is not a float... you can't save this as a float." << std::endl;
+         exit(1);
+      }
+      FloatType ftype = dataset.getFloatType();
+      H5std_string order_string;
+      H5T_order_t order = ftype.getOrder( order_string);
+      size_t size = ftype.getSize();
+      float *data = new float;
+      if ( order == 0 && size == 4 )
+         dataset.read(data, PredType::IEEE_F32LE); // Our standard integer
+      else if ( order == 0 && size == 8 ) 
+      {
+         dataset.read((float*)data, PredType::IEEE_F64LE);
+         std::cout << "NOTE: This is actually double data. We are casting to float" << std:: endl;
+      }
+      else if ( order == 1 && size == 4 )
+         dataset.read(data, PredType::IEEE_F32BE);
+      else if ( (order_string == "Big endian byte order_stringing (1)" || order == 1) && size == 8 )
+      {
+         std::cout << "NOTE: This is actually double data. We are casting to float" << std:: endl;
+         dataset.read((float*)data, PredType::IEEE_F64BE);
+      }
+      else 
+         std::cout << "Did not find data type" << std::endl;
+      float v = *data;
+      delete data;
+      dataspace.close();
+      datatype.close();
+      dataset.close();
+      file.close();
+      return v;
+   }
+   catch (FileIException error)
+   {
+      error.printError();
+      float err;
+      return err;
+   }
+   catch (GroupIException error)
+   {
+      error.printError();
+      float err;
+      return err;
+   }
+}
+double LoadH5::getDatadouble() const
+{
+   try
+   {
+      Exception::dontPrint();
+      H5std_string FILE_NAME(LoadH5::filename);
+      H5File file(FILE_NAME, H5F_ACC_RDONLY);
+      DataSet dataset = file.openDataSet(LoadH5::variable);
+      DataType datatype = dataset.getDataType();
+      DataSpace dataspace = dataset.getSpace();
+      const int npts = dataspace.getSimpleExtentNpoints();
+      H5T_class_t classt = datatype.getClass();
+      if ( classt != 1 )
+      {
+         std::cout << LoadH5::variable << " is not a float... you can't save this as a float." << std::endl;
+         exit(1);
+      }
+      FloatType ftype = dataset.getFloatType();
+      H5std_string order_string;
+      H5T_order_t order = ftype.getOrder( order_string);
+      size_t size = ftype.getSize();
+      double *data = new double;
+      if ( order==0 && size == 4 )
+      {
+         std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
+         dataset.read((double*)data, PredType::IEEE_F32LE); // Our standard integer
+      }
+      else if ( order == 0 && size == 8 ) 
+         dataset.read(data, PredType::IEEE_F64LE);
+      else if ( order == 1 && size == 4 )
+      {
+         std::cout << "NOTE: This is actually float data. We are casting to double" << std:: endl;
+         dataset.read((double*)data, PredType::IEEE_F32BE);
+      }
+      else if ( order ==1 && size == 8 )
+         dataset.read((double*)data, PredType::IEEE_F64BE);
+      else 
+         std::cout << "Did not find data type" << std::endl;
+      float v = *data;
+      delete data;
+      dataspace.close();
+      datatype.close();
+      dataset.close();
+      file.close();
+      return v;
+   }
+   catch (FileIException error)
+   {
+      error.printError();
+      double err;
+      return err;
+   }
+   catch (GroupIException error)
+   {
+      error.printError();
+      double err;
+      return err;
+   }
+}
 // Our int loading function
-std::vector<int> LoadH5::getDataint() const
+std::vector<int> LoadH5::getDataVint() const
 {
    try
    {
@@ -420,7 +683,7 @@ std::vector<int> LoadH5::getDataint() const
 }
 
 // Same as our int function, but with float. Uses IEEE_F32BE
-std::vector<float> LoadH5::getDatafloat() const
+std::vector<float> LoadH5::getDataVfloat() const
 {
    try
    {
@@ -482,7 +745,7 @@ std::vector<float> LoadH5::getDatafloat() const
 }
 
 // Same as our int function, but with double
-std::vector<double> LoadH5::getDatadouble() const
+std::vector<double> LoadH5::getDataVDouble() const
 {
    try
    {
