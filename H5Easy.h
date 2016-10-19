@@ -47,19 +47,19 @@ using namespace H5;
 class WriteH5
 {
    private:
-   public:
       std::string variable;
       std::string filename;
+   public:
       // sets our filename and our variable name
       void setFileName ( std::string name ) {filename = name;};
       void setVarName  ( std::string name ) {variable = name;};
       // Functions to be overloaded
       template<typename T>
-      void writeData(const std::vector<T>);
+      void writeData(const std::vector<T>&);
       template<typename T>
-      void writeData(const std::vector<std::vector<T> >);
+      void writeData(const std::vector<std::vector<T> >&);
       template<typename T>
-      void writeData(const T);
+      void writeData(const T&);
 
       void createGroup(std::string);
 };
@@ -67,9 +67,9 @@ class WriteH5
 class LoadH5
 {
    private:
-   public:
       std::string variable;
       std::string filename;
+   public:
       // sets our filename and our variable name
       void setFileName(std::string name) {filename = name;};
       void setVarName(std::string name) {variable = name;};
@@ -149,7 +149,7 @@ class LoadH5
 // Only accepts numerical values. Integers, floats, or doubles
 
 template<typename T>
-void WriteH5::writeData(T data)
+void WriteH5::writeData(const T &data) 
 {
     Exception::dontPrint();
     uint itr = 0;
@@ -211,7 +211,7 @@ void WriteH5::writeData(T data)
 }
 
 template<typename T>
-void WriteH5::writeData(std::vector<T> data)
+void WriteH5::writeData(const std::vector<T> &data)
 {
    Exception::dontPrint();
 
@@ -301,7 +301,7 @@ void WriteH5::writeData(std::vector<T> data)
 }
 
 template<typename T>
-void WriteH5::writeData(std::vector<std::vector<T> > data)
+void WriteH5::writeData(const std::vector<std::vector<T> > &data)
 {
    Exception::dontPrint();
 
