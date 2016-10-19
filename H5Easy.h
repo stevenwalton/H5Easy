@@ -85,7 +85,7 @@ class LoadH5
       std::vector<std::vector<double> > getData2Ddouble() const;
       // Return the size of the data
       // Note that for multi-dim arrays that it gets the total size and not the size of a single row.
-      int size() const;
+      int getSize() const;
 
       // We now make a proxy class so that we can overload the return type and use a single
       // function to get data whether int or float. This could be made more advanced by 
@@ -438,7 +438,7 @@ void WriteH5::createGroup(std::string groupName)
  * ************************************************************************************************
  */
 
-int LoadH5::size() const
+int LoadH5::getSize() const
 {
     try
     {

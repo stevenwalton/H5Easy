@@ -41,7 +41,7 @@ vector<type> loadedData = data.getData(); // Load the data
 data.setVarName("/my/group/name/myVariableName");
 vector<type> loadedData = data.getData();
 // Other features
-data.size(); // Get the size of variable (/my/group/name/myVariableName)
+data.getSize(); // Get the size of variable (/my/group/name/myVariableName)
 ```
 If you are trying to read a double as a float you will get an error. If you wish to cast you 
 should do so after the data load
