@@ -14,6 +14,7 @@ int main()
    for ( size_t i = 0; i < dim1; ++i )
       for ( size_t j = 0; j < dim2; ++j )
          v[i][j] = 3;
+   vector<int> vi{0,1,2,3};
    //for ( size_t i = 0; i < dim1; ++i )
    //{
    //   for ( size_t j = 0; j < dim2; ++j )
@@ -25,6 +26,8 @@ int main()
    dta.setFileName("dim.h5");
    dta.setVarName("vecvecdouble");
    dta.writeData(v);
+   dta.setVarName("vecInt");
+   dta.writeData(vi);
    cout << "Done writing!\tStarting read" << endl;
    
    LoadH5 data;

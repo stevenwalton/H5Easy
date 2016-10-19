@@ -6,6 +6,11 @@ The purpose of this is to provide an easier method to read and write from hdf5 f
 int, float, and double datatypes. The program will auto detect if you are trying to read or write in integer or float and
 properly store the data as such. With just a few lines you can read or write data easily. 
 
+##### H5Easy allows you to
+- Write type T, vector<T>, vector<vector<T> >
+- Load single, vector, and 2D vector ints, floats, and doubles
+- Get size of a dataset (note for 2D data sets it'll show number of total elements)
+
 ## How to use
 -------------
 The classes here are simple to use and reduce your reading and writing of h5 files to just a few lines. The intention was to mimic the behaviour 
@@ -29,18 +34,22 @@ The libraries do not care if you pass it a float or an int vector, just that you
 If a user wants to read the data from the h5 file
 ```
 LoadH5 data;
-data.setFileName("myH5File.h5");
-data.setVarName("myVariableName");
-vector<type> loadedData = data.getData();
+data.setFileName("myH5File.h5"); // Set file name (only need once)
+data.setVarName("myVariableName"); // Set variable name
+vector<type> loadedData = data.getData(); // Load the data
 // For groups
 data.setVarName("/my/group/name/myVariableName");
 vector<type> loadedData = data.getData();
+// Other features
+data.size(); // Get the size of variable (/my/group/name/myVariableName)
 ```
 If you are trying to read a double as a float you will get an error. If you wish to cast you 
 should do so after the data load
 
 I have included a test file so that you can ensure that things are working properly.
 Note that this method also works for loading in group data. All you have to do is type the full path as the variable name.
+
+If you are returned with a vector size 1 with only the entry of -1 you have gotten an error.
 
 ### Assumptions
 ---------------

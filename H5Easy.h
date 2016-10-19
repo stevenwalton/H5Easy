@@ -83,6 +83,10 @@ class LoadH5
       std::vector<std::vector<int> > getData2Dint() const;
       std::vector<std::vector<float> > getData2Dfloat() const;
       std::vector<std::vector<double> > getData2Ddouble() const;
+      // Return the size of the data
+      // Note that for multi-dim arrays that it gets the total size and not the size of a single row.
+      int size() const;
+
       // We now make a proxy class so that we can overload the return type and use a single
       // function to get data whether int or float. This could be made more advanced by 
       // adding more data types (such as double). 
@@ -434,6 +438,32 @@ void WriteH5::createGroup(std::string groupName)
  * ************************************************************************************************
  */
 
+int LoadH5::size() const
+{
+    try
+    {
+        Exception::dontPrint();
+        H5std_string FILE_NAME(LoadH5::filename);
+        H5File file(FILE_NAME, H5F_ACC_RDONLY);
+        DataSet dataset = file.openDataSet(LoadH5::variable);
+        DataSpace dataspace = dataset.getSpace();
+        const int npts = dataspace.getSimpleExtentNpoints();
+        return npts;
+    }
+    catch (FileIException error)
+    {
+       error.printError();
+       int err = -1;
+       return err;
+    }
+    catch (GroupIException error)
+    {
+       error.printError();
+       int err = -1;
+       return err;
+    }
+}
+
 int LoadH5::getDataint() const
 {
     try
@@ -444,7 +474,6 @@ int LoadH5::getDataint() const
         DataSet dataset = file.openDataSet(LoadH5::variable);
         DataType datatype = dataset.getDataType();
         DataSpace dataspace = dataset.getSpace();
-        const int npts = dataspace.getSimpleExtentNpoints();
         H5T_class_t classt = datatype.getClass();
         if ( classt != 0 )
         {
@@ -487,13 +516,13 @@ int LoadH5::getDataint() const
     catch (FileIException error)
     {
        error.printError();
-       int err;
+       int err = -1;
        return err;
     }
     catch (GroupIException error)
     {
        error.printError();
-       int err;
+       int err = -1;
        return err;
     }
 }
@@ -508,7 +537,6 @@ float LoadH5::getDatafloat() const
       DataSet dataset = file.openDataSet(LoadH5::variable);
       DataType datatype = dataset.getDataType();
       DataSpace dataspace = dataset.getSpace();
-      const int npts = dataspace.getSimpleExtentNpoints();
       H5T_class_t classt = datatype.getClass();
       if ( classt != 1 )
       {
@@ -547,13 +575,13 @@ float LoadH5::getDatafloat() const
    catch (FileIException error)
    {
       error.printError();
-      float err;
+      float err = -1.;
       return err;
    }
    catch (GroupIException error)
    {
       error.printError();
-      float err;
+      float err = -1.;
       return err;
    }
 }
@@ -567,7 +595,6 @@ double LoadH5::getDatadouble() const
       DataSet dataset = file.openDataSet(LoadH5::variable);
       DataType datatype = dataset.getDataType();
       DataSpace dataspace = dataset.getSpace();
-      const int npts = dataspace.getSimpleExtentNpoints();
       H5T_class_t classt = datatype.getClass();
       if ( classt != 1 )
       {
@@ -606,13 +633,13 @@ double LoadH5::getDatadouble() const
    catch (FileIException error)
    {
       error.printError();
-      double err;
+      double err = -1.;
       return err;
    }
    catch (GroupIException error)
    {
       error.printError();
-      double err;
+      double err = -1.;
       return err;
    }
 }
@@ -671,13 +698,13 @@ std::vector<int> LoadH5::getDataVint() const
    catch (FileIException error)
    {
       error.printError();
-      std::vector<int> err;
+      std::vector<int> err{1,-1};
       return err;
    }
    catch (GroupIException error)
    {
       error.printError();
-      std::vector<int> err;
+      std::vector<int> err{1,-1};
       return err;
    }
 }
@@ -733,13 +760,13 @@ std::vector<float> LoadH5::getDataVfloat() const
    catch (FileIException error)
    {
       error.printError();
-      std::vector<float> err;
+      std::vector<float> err{1,-1.};
       return err;
    }
    catch (GroupIException error)
    {
       error.printError();
-      std::vector<float> err;
+      std::vector<float> err{1,-1.};
       return err;
    }
 }
@@ -794,13 +821,13 @@ std::vector<double> LoadH5::getDataVDouble() const
    catch (FileIException error)
    {
       error.printError();
-      std::vector<double> err;
+      std::vector<double> err{1,-1.};
       return err;
    }
    catch (GroupIException error)
    {
       error.printError();
-      std::vector<double> err;
+      std::vector<double> err{1,-1.};
       return err;
    }
 }
@@ -868,13 +895,13 @@ std::vector<std::vector<int> > LoadH5::getData2Dint() const
    catch (FileIException error)
    {
       error.printError();
-      std::vector<std::vector<int> > err;
+      std::vector<std::vector<int> > err{1,std::vector<int>(1,-1)};
       return err;
    }
    catch (GroupIException error)
    {
       error.printError();
-      std::vector<std::vector<int> > err;
+      std::vector<std::vector<int> > err{1,std::vector<int>(1,-1)};
       return err;
    }
 }
@@ -929,13 +956,13 @@ std::vector<std::vector<float> > LoadH5::getData2Dfloat() const
    catch (FileIException error)
    {
       error.printError();
-      std::vector<std::vector<float> > err;
+      std::vector<std::vector<float> > err{1,std::vector<float>(1,-1.)};
       return err;
    }
    catch (GroupIException error)
    {
       error.printError();
-      std::vector<std::vector<float> > err;
+      std::vector<std::vector<float> > err{1,std::vector<float>(1,-1.)};
       return err;
    }
 }
@@ -991,13 +1018,13 @@ std::vector<std::vector<double> > LoadH5::getData2Ddouble() const
    catch (FileIException error)
    {
       error.printError();
-      std::vector<std::vector<double> > err;
+      std::vector<std::vector<double> > err{1,std::vector<double>(1,-1.)};
       return err;
    }
    catch (GroupIException error)
    {
       error.printError();
-      std::vector<std::vector<double> > err;
+      std::vector<std::vector<double> > err{1,std::vector<double>(1,-1.)};
       return err;
    }
 }
