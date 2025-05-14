@@ -24,7 +24,7 @@
  *
  * Class functions for an easier h5 read and write method.
  * Created by: Steven Walton
- * Email: walton.stevenj@gmail.com
+ * Email: h5easy@walton.mozmail.com
  * Version: 1.2
  *
  * If you wish to contribute to this endeavour please email me or fork my branch from
